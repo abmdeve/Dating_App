@@ -16,11 +16,12 @@ import {
   Entypo,
   Feather,
 } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { MESSAGES } from "../../config/data";
 
 const chatroom = () => {
   const navigation = useNavigation();
+  const router = useRouter();
   const params = useLocalSearchParams();
   const [message, setMessage] = useState("");
   const [messages, setMessages] =
@@ -30,7 +31,7 @@ const chatroom = () => {
     navigation.setOptions({
       headerTitle: "",
       headerLeft: () => (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <Pressable onPress={() => router.back()} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Ionicons name="arrow-back" size={24} color="black" />
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <Image
@@ -46,7 +47,7 @@ const chatroom = () => {
               {params?.name}{" "}
             </Text>
           </View>
-        </View>
+        </Pressable>
       ),
 
       headerRight: () => (

@@ -136,7 +136,6 @@ app.post("/login", async (req, res) => {
     res.status(200).json({ token });
   } catch (error) {
     return res.status(500).json({ message: "LOGIN FAILED..." });
-
   }
 });
 
@@ -161,5 +160,148 @@ app.post("/user/:userdId/gender", async (req, res) => {
       .json({ message: "USER GENDER UPDATED SUCCESFULLY!" });
   } catch (error) {
     res.status(500).json({ message: "ERROR UPDATING USER GENDER", error });
+  }
+});
+
+// ENDPOINT TO UPDATE THE USER DESCRIPTION
+app.put("/users/:userId/description", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { description } = req.body;
+
+    const user = User.findByIdAndUpdate(
+      userId,
+      { description: description },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "USER NOT FOUND" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "USER DSCRIPTION UPDATED SUCCESFULLY" });
+  } catch (error) {
+    res.status(500).json({ message: "ERROR UPDATING USR DESCRIPTION" });
+  }
+});
+
+// FETCH USERS DATA
+app.get("/user/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "USER NOT FOUND" });
+    }
+
+    return res.status(200).json({ message: "USER SUCCESFULLY", user });
+  } catch (error) {
+    res.status(500).json({ message: "ERROR FETCHING THE USER DETAILS" });
+  }
+});
+
+// ENDPOINT TO ADD A TURNON FOR A USER IN THE BACKEND
+app.put("/users/:userId/turn-ons/add", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { turnOn } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        $addToSet: { turnOns: turnOn },
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "USER NOT FOUND" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "TURN ON UPDATED SUCCESFULLY", user });
+  } catch (error) {
+    res.status(500).json({ message: "ERROR ADDING THE TURN ON" });
+  }
+});
+
+// ENDPOINT TO REMOVE A PARTICULAR TURN ON FOR THE USER
+app.put("/users/:userId/turn-ons/remove", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const { turnOn } = req.body;
+
+    const user = User.findByIdAndUpdate(
+      userId,
+      { $pull: { turnOns: turnOn } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "USER NOT FOUND" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "TURN ON REMOVED SUCCESFULLY", user });
+  } catch (error) {
+    res.status(500).json({ message: "ERROR REMOVING TURN ON" });
+  }
+});
+
+// ENDPOINT TO FETCH ALL THE PROFILES FOR A PARTICULAR USER
+app.get("/profiles", async (req, res) => {
+  try {
+    const { userId, gender, turnOns, lookingFor } = req.query;
+
+    let filter = { gender: gender === "male" ? "female" : "male" };
+
+    if (turnOns) {
+      filter.turnOns = { $in: turnOns };
+    }
+
+    if (lookingFor) {
+      filter.lookingFor = { $in: lookingFor };
+    }
+
+    const currentUser = await User.findById(userId)
+      .populate("matches", "_id")
+      .populate("crushes", "_id");
+
+    // EXTRACT THE ID's OF THE MATCHES
+    const friendIds = currentUser.matches.map((friend) => friend._id);
+    const crushIds = currentUser.crushes.map((crush) => crush._id);
+
+    const profiles = await User.find(filter)
+      .where("_id")
+      .nin(userId, ...friendIds, ...crushIds);
+
+    return res.status(200).json({ message: "PROFILES SUCCESFULLY", profiles });
+  } catch (error) {
+    res.status(500).json({ message: "ERROR FETCHING USER PROFILES", error });
+  }
+});
+
+// SEND LIKE
+app.post("/send-like", async (req, res) => {
+  try {
+    const { currentUserId, selectedUserId } = req.body;
+
+    // UPDATE THE RECEPIENTS RECEIVED LIKS ARRAY
+    await User.findByIdAndUpdate(selectedUserId, {
+      $push: { recievedLikes: currentUserId },
+    });
+
+    await User.findByIdAndUpdate(currentUserId, {
+      $push: { crushes: selectedUserId },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "ERROR SENDING A LIKE", error });
   }
 });

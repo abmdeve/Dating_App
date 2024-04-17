@@ -8,7 +8,7 @@ import {
   TextInput,
   Pressable,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MaterialIcons, AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import axios from "axios";
@@ -19,6 +19,20 @@ const login = () => {
   const [email, setEmail] = useState("abmdev@gmail.com");
   const [password, setPassword] = useState("12345678");
   const router = useRouter();
+
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const token = await AsyncStorage.getItem("auth");
+        if (token) {
+          router.replace("/(tabs)/profile");
+        }
+      } catch (error) {
+        console.log("Error", error);
+      }
+    };
+    checkLoginStatus();
+  }, []);
 
   const handleLogin = async () => {
     const user = {

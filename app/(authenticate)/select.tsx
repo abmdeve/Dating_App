@@ -12,29 +12,29 @@ const select = () => {
   const [option, setOption] = useState("");
   const [userId, setUserId] = useState("");
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const token = await AsyncStorage.getItem("auth");
-      const decodedToken = jwtDecode(token);
-      const userId = decodedToken.userId;
-      setUserId(userId);
-    };
-    fetchUser();
-  }, []);
+  // useEffect(() => {
+  //   const fetchUser = async () => {
+  //     const token = await AsyncStorage.getItem("auth");
+  //     const decodedToken = jwtDecode(token);
+  //     const userId = decodedToken.userId;
+  //     setUserId(userId);
+  //   };
+  //   fetchUser();
+  // }, []);
 
   const updateUserGender = async () => {
-    try {
-      const response = await axios.put(`${HOST}/users/${userId}/gender`, {
-        gender: option,
-      });
-      console.log("response.data", response.data);
+    // try {
+    //   const response = await axios.put(`${HOST}/users/${userId}/gender`, {
+    //     gender: option,
+    //   });
+    //   console.log("response.data", response.data);
 
-      if (response.status == 200) {
-        router.replace("/(tabs)/bio");
-      }
-    } catch (error) {
-      console.log("error", error);
-    }
+    //   if (response.status == 200) {
+    //     router.replace("/(tabs)/bio");
+    //   }
+    // } catch (error) {
+    //   console.log("error", error);
+    // }
     router.replace("/(tabs)/bio");
 
   };
